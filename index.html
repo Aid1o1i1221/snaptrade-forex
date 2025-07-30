@@ -1,0 +1,54 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SnapTrade Forex</title>
+  <style>
+    body {
+      background-color: black;
+      color: white;
+      font-family: sans-serif;
+      text-align: center;
+      padding: 40px;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 20px;
+      font-size: 18px;
+      border: none;
+      border-radius: 8px;
+      background: white;
+      color: black;
+      cursor: pointer;
+    }
+    img {
+      max-width: 100%;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>SnapTrade Forex</h1>
+  <p>Upload your chart image, and we'll tell you whether to Buy or Sell.</p>
+  <input type="file" accept="image/*" id="upload" />
+  <div id="prediction" style="margin-top: 30px; font-size: 24px;"></div>
+
+  <script>
+    document.getElementById("upload").addEventListener("change", async (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      document.getElementById("prediction").textContent = "Analyzing...";
+
+      // Fake delay to simulate AI prediction
+      setTimeout(() => {
+        const predictions = ["Buy", "Sell"];
+        const random = Math.floor(Math.random() * predictions.length);
+        document.getElementById("prediction").textContent = predictions[random];
+      }, 1500);
+    });
+  </script>
+</body>
+</html>
