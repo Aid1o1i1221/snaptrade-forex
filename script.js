@@ -26,7 +26,7 @@ async function uploadImage() {
   const response = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: {
-      "Authorization": "Bearer YOUR_OPENAI_API_KEY",
+      "Authorization": "Bearer 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",
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
