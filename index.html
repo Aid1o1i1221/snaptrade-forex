@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SnapTrader AI Pro - Advanced Trading Analytics</title>
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <title>SnapTrader AI - Professional Trading Platform</title>
     <style>
         * {
             margin: 0;
@@ -12,42 +11,24 @@
             box-sizing: border-box;
         }
 
-        :root {
-            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --success-gradient: linear-gradient(135deg, #10b981, #059669);
-            --danger-gradient: linear-gradient(135deg, #ef4444, #dc2626);
-            --warning-gradient: linear-gradient(135deg, #f59e0b, #d97706);
-            --glass-bg: rgba(255, 255, 255, 0.95);
-            --glass-border: rgba(255, 255, 255, 0.2);
-            --shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-            --shadow-glow: 0 0 30px rgba(102, 126, 234, 0.3);
-        }
-
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', system-ui, sans-serif;
-            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
-            color: #e2e8f0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            color: #f1f5f9;
             min-height: 100vh;
-            line-height: 1.5;
-            position: relative;
-            overflow-x: hidden;
+            line-height: 1.6;
         }
 
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: 
-                radial-gradient(circle at 20% 80%, rgba(102, 126, 234, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(118, 75, 162, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 40% 40%, rgba(16, 185, 129, 0.05) 0%, transparent 50%);
-            pointer-events: none;
-            z-index: -1;
+        .screen {
+            display: none;
+            min-height: 100vh;
         }
 
+        .screen.active {
+            display: block;
+        }
+
+        /* LOGIN SCREEN */
         .login-screen {
             display: flex;
             align-items: center;
@@ -57,188 +38,108 @@
         }
 
         .login-card {
-            background: var(--glass-bg);
+            background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 24px;
             padding: 48px 40px;
             text-align: center;
-            max-width: 480px;
+            max-width: 450px;
             width: 100%;
-            box-shadow: var(--shadow-xl);
-            position: relative;
-        }
-
-        .login-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: var(--primary-gradient);
-            border-radius: 24px;
-            opacity: 0.1;
-            z-index: -1;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
         }
 
         .login-card h1 {
-            font-size: 3rem;
+            font-size: 2.8rem;
             font-weight: 900;
-            background: var(--primary-gradient);
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            margin-bottom: 12px;
-            letter-spacing: -0.02em;
+            margin-bottom: 16px;
         }
 
         .login-card p {
-            color: #64748b;
+            color: #cbd5e1;
             font-size: 1.1rem;
-            margin-bottom: 36px;
-            line-height: 1.7;
+            margin-bottom: 32px;
+            line-height: 1.6;
         }
 
         .auth-btn {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 16px;
+            gap: 12px;
+            width: 100%;
+            padding: 16px 24px;
             border: none;
-            border-radius: 16px;
-            padding: 16px 28px;
+            border-radius: 12px;
             font-size: 1rem;
-            font-weight: 700;
+            font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            width: 100%;
-            position: relative;
-            overflow: hidden;
+            transition: all 0.3s ease;
+            margin-bottom: 16px;
         }
 
-        .auth-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            transition: left 0.5s;
-        }
-
-        .auth-btn:hover::before {
-            left: 100%;
-        }
-
-        .google-signin-btn {
-            background: var(--primary-gradient);
+        .google-btn {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
             color: white;
-            box-shadow: 0 8px 30px rgba(102, 126, 234, 0.4);
-            margin-bottom: 20px;
         }
 
-        .google-signin-btn:hover {
-            transform: translateY(-3px) scale(1.02);
-            box-shadow: 0 12px 40px rgba(102, 126, 234, 0.6);
-        }
-
-        .guest-signin-btn {
+        .guest-btn {
             background: rgba(255, 255, 255, 0.1);
-            color: #1f2937;
+            color: #f1f5f9;
             border: 2px solid rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(10px);
         }
 
-        .guest-signin-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-            border-color: rgba(102, 126, 234, 0.5);
-            transform: translateY(-3px) scale(1.02);
+        .auth-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
         }
 
-        .login-divider {
-            margin: 28px 0;
-            position: relative;
+        .divider {
+            margin: 24px 0;
             text-align: center;
+            position: relative;
         }
 
-        .login-divider::before {
+        .divider::before {
             content: '';
             position: absolute;
             top: 50%;
             left: 0;
             right: 0;
             height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(148, 163, 184, 0.3), transparent);
+            background: rgba(255, 255, 255, 0.2);
         }
 
-        .login-divider span {
-            background: var(--glass-bg);
-            padding: 0 20px;
+        .divider span {
+            background: #1e293b;
+            padding: 0 16px;
             color: #94a3b8;
-            font-size: 0.9rem;
-            font-weight: 600;
         }
 
-        .login-benefits {
-            margin-top: 36px;
-            padding: 24px;
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .benefit-item {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            margin-bottom: 16px;
-            font-size: 0.95rem;
-            color: #64748b;
-            transition: all 0.2s ease;
-        }
-
-        .benefit-item:hover {
-            color: #667eea;
-            transform: translateX(4px);
-        }
-
-        .benefit-item:last-child {
-            margin-bottom: 0;
-        }
-
-        .benefit-icon {
-            font-size: 1.3rem;
-            filter: drop-shadow(0 0 10px rgba(102, 126, 234, 0.3));
-        }
-
-        .dashboard {
-            display: none;
-            min-height: 100vh;
+        /* DASHBOARD SCREEN */
+        .dashboard-screen {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
         }
 
         .header {
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(226, 232, 240, 0.2);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             padding: 20px 32px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
         }
 
         .logo {
-            font-size: 1.75rem;
-            font-weight: 900;
-            background: var(--primary-gradient);
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            letter-spacing: -0.02em;
         }
 
         .user-info {
@@ -248,726 +149,379 @@
         }
 
         .user-avatar {
-            width: 44px;
-            height: 44px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
-            border: 3px solid transparent;
-            background: var(--primary-gradient);
-            padding: 2px;
-            transition: all 0.3s ease;
-        }
-
-        .user-avatar img {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            object-fit: cover;
-        }
-
-        .user-avatar:hover {
-            box-shadow: var(--shadow-glow);
-            transform: scale(1.1);
-        }
-
-        .user-name {
-            font-size: 1rem;
-            font-weight: 700;
-            color: #1f2937;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
         }
 
         .logout-btn {
-            background: rgba(255, 255, 255, 0.8);
-            color: #6b7280;
-            border: 2px solid rgba(226, 232, 240, 0.5);
-            border-radius: 12px;
-            padding: 10px 20px;
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 8px;
+            padding: 8px 16px;
             cursor: pointer;
             font-size: 0.9rem;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
+            transition: all 0.2s ease;
         }
 
         .logout-btn:hover {
-            background: rgba(239, 68, 68, 0.1);
-            border-color: #ef4444;
-            color: #ef4444;
-            transform: translateY(-2px);
+            background: rgba(239, 68, 68, 0.2);
         }
 
-        .main-container {
-            max-width: 1600px;
+        .dashboard-container {
+            max-width: 1200px;
             margin: 0 auto;
             padding: 40px 32px;
         }
 
-        .page-header {
-            margin-bottom: 40px;
+        .dashboard-header {
             text-align: center;
+            margin-bottom: 48px;
         }
 
-        .page-title {
-            font-size: 3.5rem;
+        .dashboard-title {
+            font-size: 3rem;
             font-weight: 900;
-            background: var(--primary-gradient);
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            margin-bottom: 12px;
-            letter-spacing: -0.03em;
+            margin-bottom: 16px;
         }
 
-        .page-subtitle {
+        .dashboard-subtitle {
             color: #94a3b8;
-            font-size: 1.25rem;
-            font-weight: 500;
+            font-size: 1.2rem;
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 32px;
+            margin-top: 48px;
+        }
+
+        .tool-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 32px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .tool-card:hover {
+            transform: translateY(-8px);
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(59, 130, 246, 0.5);
+            box-shadow: 0 20px 40px rgba(59, 130, 246, 0.2);
+        }
+
+        .tool-icon {
+            font-size: 3rem;
+            margin-bottom: 24px;
+        }
+
+        .tool-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #f1f5f9;
+            margin-bottom: 12px;
+        }
+
+        .tool-description {
+            color: #94a3b8;
+            font-size: 1rem;
+            margin-bottom: 24px;
+        }
+
+        .tool-badge {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        /* TRADING TOOL SCREEN */
+        .trading-screen {
+            background: #f8fafc;
+            color: #1f2937;
+        }
+
+        .trading-header {
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .trading-header .logo {
+            color: #1f2937;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .back-btn {
+            background: #f3f4f6;
+            color: #6b7280;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+
+        .back-btn:hover {
+            background: #e5e7eb;
+        }
+
+        .trading-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 32px;
+        }
+
+        .trading-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .trading-subtitle {
+            text-align: center;
+            color: #6b7280;
+            font-size: 1.1rem;
+            margin-bottom: 32px;
         }
 
         .disclaimer {
-            background: rgba(245, 158, 11, 0.1);
-            backdrop-filter: blur(10px);
-            border: 2px solid rgba(245, 158, 11, 0.3);
-            border-radius: 20px;
-            padding: 24px;
-            margin-bottom: 40px;
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            border: 2px solid #f59e0b;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 32px;
             display: flex;
             align-items: flex-start;
-            gap: 20px;
+            gap: 16px;
         }
 
         .disclaimer-icon {
-            color: #f59e0b;
-            font-size: 1.8rem;
-            margin-top: 4px;
-            filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.3));
+            color: #d97706;
+            font-size: 1.5rem;
         }
 
         .disclaimer-content h4 {
-            font-weight: 800;
-            color: #f59e0b;
-            margin-bottom: 10px;
-            font-size: 1.1rem;
+            font-weight: 700;
+            color: #92400e;
+            margin-bottom: 8px;
         }
 
         .disclaimer-content p {
-            color: #d97706;
-            font-size: 0.95rem;
-            line-height: 1.7;
+            color: #92400e;
+            font-size: 0.9rem;
+            line-height: 1.6;
         }
 
         .content-grid {
             display: grid;
-            grid-template-columns: 1fr 450px;
-            gap: 40px;
+            grid-template-columns: 1fr 400px;
+            gap: 32px;
         }
 
-        @media (max-width: 1400px) {
+        @media (max-width: 1200px) {
             .content-grid {
                 grid-template-columns: 1fr;
-                gap: 32px;
             }
         }
 
         .chart-section {
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            border-radius: 24px;
-            padding: 40px;
-            box-shadow: var(--shadow-xl);
-            position: relative;
-        }
-
-        .chart-section::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: var(--primary-gradient);
-            border-radius: 24px;
-            opacity: 0.02;
-            z-index: -1;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 20px;
+            padding: 32px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
         }
 
         .section-header {
-            margin-bottom: 36px;
             text-align: center;
+            margin-bottom: 32px;
         }
 
         .section-title {
-            font-size: 1.75rem;
-            font-weight: 800;
-            color: #1f2937;
-            margin-bottom: 10px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 8px;
         }
 
         .section-subtitle {
             color: #6b7280;
-            font-size: 1.1rem;
+            font-size: 1rem;
         }
 
         .info-box {
-            background: rgba(59, 130, 246, 0.1);
-            backdrop-filter: blur(10px);
-            border: 2px solid rgba(59, 130, 246, 0.3);
-            border-radius: 20px;
-            padding: 24px;
-            margin-bottom: 36px;
+            background: linear-gradient(135deg, #eff6ff, #dbeafe);
+            border: 2px solid #3b82f6;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 32px;
             display: flex;
             align-items: flex-start;
-            gap: 20px;
+            gap: 16px;
         }
 
         .info-icon {
-            color: #3b82f6;
-            font-size: 1.5rem;
-            margin-top: 4px;
-            filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.3));
+            color: #2563eb;
+            font-size: 1.25rem;
         }
 
         .info-content h4 {
-            font-weight: 800;
+            font-weight: 700;
             color: #1e40af;
-            margin-bottom: 10px;
-            font-size: 1.1rem;
+            margin-bottom: 8px;
         }
 
         .info-content p {
-            color: #3730a3;
-            font-size: 0.95rem;
-            line-height: 1.7;
+            color: #1e40af;
+            font-size: 0.9rem;
+            line-height: 1.6;
         }
 
         .upload-area {
-            border: 3px dashed rgba(148, 163, 184, 0.4);
-            border-radius: 20px;
-            padding: 80px 32px;
+            border: 3px dashed #d1d5db;
+            border-radius: 16px;
+            padding: 60px 24px;
             text-align: center;
             cursor: pointer;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            background: rgba(248, 250, 252, 0.5);
-            backdrop-filter: blur(10px);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .upload-area::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: conic-gradient(from 0deg, transparent, rgba(102, 126, 234, 0.1), transparent);
-            animation: rotate 8s linear infinite;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .upload-area:hover::before {
-            opacity: 1;
-        }
-
-        @keyframes rotate {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            transition: all 0.3s ease;
+            background: #f8fafc;
         }
 
         .upload-area:hover {
-            border-color: #667eea;
-            background: rgba(102, 126, 234, 0.1);
-            transform: translateY(-4px) scale(1.02);
-            box-shadow: var(--shadow-glow);
-        }
-
-        .upload-area.dragover {
-            border-color: #667eea;
-            background: rgba(102, 126, 234, 0.15);
-            transform: scale(1.05);
-            box-shadow: var(--shadow-glow);
+            border-color: #3b82f6;
+            background: #eff6ff;
+            transform: translateY(-2px);
         }
 
         .upload-icon {
-            font-size: 4rem;
-            color: #94a3b8;
-            margin-bottom: 24px;
-            transition: all 0.4s ease;
-            filter: drop-shadow(0 0 20px rgba(102, 126, 234, 0.2));
-        }
-
-        .upload-area:hover .upload-icon {
-            color: #667eea;
-            transform: scale(1.2) rotateY(180deg);
+            font-size: 3rem;
+            color: #9ca3af;
+            margin-bottom: 20px;
         }
 
         .upload-text {
-            font-size: 1.4rem;
-            font-weight: 700;
-            color: #1f2937;
-            margin-bottom: 10px;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 8px;
         }
 
         .upload-subtext {
             color: #6b7280;
-            font-size: 1.1rem;
-            margin-bottom: 28px;
+            margin-bottom: 20px;
         }
 
-        #imageInput {
-            display: none;
-        }
-
-        .select-image-btn {
-            background: var(--primary-gradient);
+        .select-btn {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
             color: white;
             border: none;
-            border-radius: 16px;
-            padding: 16px 32px;
-            font-size: 1.1rem;
-            font-weight: 700;
+            border-radius: 12px;
+            padding: 12px 24px;
+            font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 8px 30px rgba(102, 126, 234, 0.4);
         }
 
-        .select-image-btn:hover {
-            transform: translateY(-3px) scale(1.05);
-            box-shadow: 0 12px 40px rgba(102, 126, 234, 0.6);
-        }
-
-        .uploaded-image {
-            max-width: 100%;
-            border-radius: 20px;
-            margin: 32px 0;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-            transition: all 0.3s ease;
-        }
-
-        .uploaded-image:hover {
-            transform: scale(1.03);
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+        .select-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.4);
         }
 
         .analyze-btn {
             width: 100%;
-            background: var(--success-gradient);
+            background: linear-gradient(135deg, #10b981, #059669);
             color: white;
             border: none;
-            border-radius: 16px;
-            padding: 20px 32px;
-            font-size: 1.2rem;
-            font-weight: 800;
+            border-radius: 12px;
+            padding: 16px 24px;
+            font-size: 1.1rem;
+            font-weight: 700;
             cursor: pointer;
+            margin-top: 24px;
             transition: all 0.3s ease;
-            margin-top: 32px;
-            box-shadow: 0 8px 30px rgba(16, 185, 129, 0.4);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .analyze-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-            transition: left 0.5s;
-        }
-
-        .analyze-btn:hover:not(:disabled)::before {
-            left: 100%;
         }
 
         .analyze-btn:hover:not(:disabled) {
-            transform: translateY(-3px) scale(1.02);
-            box-shadow: 0 12px 40px rgba(16, 185, 129, 0.6);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4);
         }
 
         .analyze-btn:disabled {
-            background: #6b7280;
+            background: #9ca3af;
             cursor: not-allowed;
-            color: #9ca3af;
-            box-shadow: none;
-            transform: none;
         }
 
         .sidebar {
-            display: flex;
-            flex-direction: column;
-            gap: 32px;
-        }
-
-        .tabs {
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            border-radius: 24px;
-            overflow: hidden;
-            box-shadow: var(--shadow-xl);
-        }
-
-        .tab-nav {
-            display: flex;
-            background: rgba(248, 250, 252, 0.8);
-            backdrop-filter: blur(10px);
-        }
-
-        .tab-btn {
-            flex: 1;
-            background: none;
-            border: none;
-            padding: 20px 24px;
-            font-size: 1rem;
-            font-weight: 700;
-            color: #6b7280;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-
-        .tab-btn.active {
-            color: #667eea;
-            background: rgba(102, 126, 234, 0.1);
-        }
-
-        .tab-btn.active::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: var(--primary-gradient);
-        }
-
-        .tab-btn:hover:not(.active) {
-            background: rgba(102, 126, 234, 0.05);
-            color: #667eea;
-        }
-
-        .tab-content {
-            padding: 40px;
-        }
-
-        .calculator-section h3 {
-            font-size: 1.4rem;
-            font-weight: 800;
-            color: #1f2937;
-            margin-bottom: 10px;
-        }
-
-        .calculator-subtitle {
-            color: #6b7280;
-            font-size: 1rem;
-            margin-bottom: 32px;
-        }
-
-        .timeframe-info {
-            background: rgba(59, 130, 246, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 12px;
-            padding: 16px 20px;
-            margin-bottom: 32px;
-            font-size: 0.95rem;
-            font-weight: 700;
-            color: #1e40af;
-            text-align: center;
-            border: 1px solid rgba(59, 130, 246, 0.2);
-        }
-
-        .form-section {
-            margin-bottom: 40px;
-        }
-
-        .form-section h4 {
-            font-size: 1rem;
-            font-weight: 800;
-            color: #374151;
-            margin-bottom: 20px;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-        }
-
-        .form-group {
-            margin-bottom: 24px;
-        }
-
-        .form-label {
-            display: block;
-            font-size: 0.95rem;
-            font-weight: 700;
-            color: #374151;
-            margin-bottom: 8px;
-        }
-
-        .form-input {
-            width: 100%;
-            border: 2px solid rgba(226, 232, 240, 0.6);
-            border-radius: 12px;
-            padding: 16px 20px;
-            font-size: 1rem;
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(10px);
-            transition: all 0.3s ease;
-        }
-
-        .form-input:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
-            background: rgba(255, 255, 255, 0.95);
-        }
-
-        .form-hint {
-            font-size: 0.85rem;
-            color: #6b7280;
-            margin-top: 8px;
-        }
-
-        .analysis-section {
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            border-radius: 24px;
-            padding: 40px;
-            box-shadow: var(--shadow-xl);
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
         }
 
         .signal-card {
-            background: rgba(248, 250, 252, 0.8);
-            backdrop-filter: blur(10px);
-            border: 3px solid rgba(226, 232, 240, 0.5);
-            border-radius: 20px;
-            padding: 32px;
+            background: #f8fafc;
+            border: 3px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 24px;
             text-align: center;
-            margin-bottom: 32px;
-            transition: all 0.4s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .signal-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: radial-gradient(circle at center, rgba(102, 126, 234, 0.05) 0%, transparent 70%);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .signal-card:hover::before {
-            opacity: 1;
-        }
-
-        .signal-waiting {
-            border-color: rgba(156, 163, 175, 0.5);
-        }
-
-        .signal-buy {
-            background: rgba(34, 197, 94, 0.1);
-            border-color: #22c55e;
-            box-shadow: 0 0 30px rgba(34, 197, 94, 0.2);
-        }
-
-        .signal-sell {
-            background: rgba(239, 68, 68, 0.1);
-            border-color: #ef4444;
-            box-shadow: 0 0 30px rgba(239, 68, 68, 0.2);
-        }
-
-        .signal-hold {
-            background: rgba(245, 158, 11, 0.1);
-            border-color: #f59e0b;
-            box-shadow: 0 0 30px rgba(245, 158, 11, 0.2);
+            margin: 32px;
         }
 
         .signal-text {
-            font-size: 1.8rem;
-            font-weight: 900;
-            margin-bottom: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-        }
-
-        .signal-buy .signal-text {
-            background: var(--success-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .signal-sell .signal-text {
-            background: var(--danger-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .signal-hold .signal-text {
-            background: var(--warning-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .signal-waiting .signal-text {
+            font-size: 1.5rem;
+            font-weight: 800;
             color: #6b7280;
+            margin-bottom: 8px;
         }
 
         .signal-subtitle {
-            color: #6b7280;
-            font-size: 1rem;
-            font-weight: 600;
-        }
-
-        .confidence-container {
-            margin: 32px 0;
-        }
-
-        .confidence-bar {
-            width: 100%;
-            height: 12px;
-            background: rgba(229, 231, 235, 0.8);
-            border-radius: 6px;
-            overflow: hidden;
-            margin-bottom: 16px;
-            position: relative;
-        }
-
-        .confidence-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #ef4444, #f59e0b, #22c55e);
-            width: 0%;
-            transition: width 3s cubic-bezier(0.4, 0, 0.2, 1);
-            border-radius: 6px;
-            position: relative;
-        }
-
-        .confidence-fill::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
-            animation: shimmer 2s infinite;
-        }
-
-        @keyframes shimmer {
-            0% { left: -100%; }
-            100% { left: 100%; }
-        }
-
-        .confidence-text {
-            text-align: center;
-            font-weight: 800;
-            color: #374151;
-            font-size: 1.1rem;
-        }
-
-        .analysis-grid {
-            display: grid;
-            gap: 16px;
-            margin-top: 32px;
-        }
-
-        .analysis-item {
-            background: rgba(248, 250, 252, 0.8);
-            backdrop-filter: blur(10px);
-            border: 2px solid rgba(226, 232, 240, 0.5);
-            border-radius: 16px;
-            padding: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .analysis-item::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(102, 126, 234, 0.1), transparent);
-            transform: rotate(45deg);
-            transition: all 0.5s ease;
-            opacity: 0;
-        }
-
-        .analysis-item:hover {
-            border-color: #667eea;
-            transform: translateX(8px) scale(1.02);
-            background: rgba(102, 126, 234, 0.05);
-        }
-
-        .analysis-item:hover::before {
-            opacity: 1;
-            animation: shimmer-analysis 2s infinite;
-        }
-
-        @keyframes shimmer-analysis {
-            0% { transform: translateX(-100%) rotate(45deg); }
-            50% { transform: translateX(100%) rotate(45deg); }
-            100% { transform: translateX(200%) rotate(45deg); }
-        }
-
-        .analysis-label {
-            font-weight: 700;
-            color: #6b7280;
-            font-size: 0.95rem;
-        }
-
-        .analysis-value {
-            font-weight: 800;
-            color: #1f2937;
-            font-size: 1.1rem;
-        }
-
-        .ai-reasoning {
-            background: rgba(248, 250, 252, 0.8);
-            backdrop-filter: blur(10px);
-            border: 2px solid rgba(226, 232, 240, 0.5);
-            border-radius: 16px;
-            padding: 24px;
-            margin-top: 24px;
-        }
-
-        .ai-reasoning h4 {
-            color: #374151;
-            margin-bottom: 16px;
-            font-size: 1.1rem;
-            font-weight: 800;
-        }
-
-        .ai-reasoning p {
-            color: #6b7280;
-            line-height: 1.8;
-            font-size: 0.95rem;
+            color: #9ca3af;
+            font-size: 0.9rem;
         }
 
         .loading {
             display: none;
             text-align: center;
-            margin: 40px 0;
+            margin: 32px 0;
         }
 
         .spinner {
-            width: 48px;
-            height: 48px;
-            border: 4px solid rgba(229, 231, 235, 0.3);
-            border-top: 4px solid #667eea;
+            width: 40px;
+            height: 40px;
+            border: 3px solid #e5e7eb;
+            border-top: 3px solid #3b82f6;
             border-radius: 50%;
             animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
-            filter: drop-shadow(0 0 10px rgba(102, 126, 234, 0.3));
+            margin: 0 auto 16px;
         }
 
         @keyframes spin {
@@ -977,268 +531,163 @@
 
         .loading-text {
             color: #6b7280;
-            font-size: 1.1rem;
-            font-weight: 600;
+            font-weight: 500;
         }
 
-        .error-message {
-            background: rgba(239, 68, 68, 0.1);
-            backdrop-filter: blur(10px);
-            border: 2px solid rgba(239, 68, 68, 0.3);
+        .uploaded-image {
+            max-width: 100%;
             border-radius: 16px;
-            padding: 20px;
-            margin-top: 20px;
-            color: #dc2626;
-            font-size: 0.95rem;
+            margin: 24px 0;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
         }
 
-        .accuracy-badge {
-            display: inline-block;
-            background: var(--success-gradient);
-            color: white;
-            padding: 6px 16px;
-            border-radius: 24px;
-            font-size: 0.8rem;
-            font-weight: 800;
-            margin-left: 16px;
-            box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
-            animation: pulse-glow 2s infinite;
+        #imageInput {
+            display: none;
         }
 
-        @keyframes pulse-glow {
-            0%, 100% { 
-                opacity: 1;
-                box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
-            }
-            50% { 
-                opacity: 0.8;
-                box-shadow: 0 8px 24px rgba(16, 185, 129, 0.5);
-            }
-        }
-
-        .pulse {
-            animation: pulse-scale 2s infinite;
-        }
-
-        @keyframes pulse-scale {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-
-        .history-placeholder {
-            text-align: center;
-            padding: 60px 24px;
-            color: #6b7280;
-        }
-
-        .history-icon {
-            font-size: 4rem;
-            margin-bottom: 20px;
-            opacity: 0.7;
-            filter: drop-shadow(0 0 20px rgba(102, 126, 234, 0.2));
-        }
-
-        .history-text {
-            font-size: 1.1rem;
-            font-weight: 700;
-            margin-bottom: 12px;
-            color: #374151;
-        }
-
-        .history-subtext {
-            font-size: 0.9rem;
-            color: #9ca3af;
-            line-height: 1.6;
-        }
-
-        /* Enhanced Mobile Responsiveness */
+        /* Mobile Responsive */
         @media (max-width: 768px) {
-            .main-container {
+            .dashboard-container, .trading-container {
                 padding: 24px 16px;
             }
-
-            .page-title {
-                font-size: 2.5rem;
+            
+            .dashboard-title, .trading-title {
+                font-size: 2rem;
             }
-
-            .chart-section, .analysis-section {
-                padding: 24px;
-            }
-
-            .upload-area {
-                padding: 40px 20px;
-            }
-
-            .upload-icon {
-                font-size: 3rem;
-            }
-
-            .content-grid {
+            
+            .tools-grid {
+                grid-template-columns: 1fr;
                 gap: 24px;
             }
-
-            .header {
+            
+            .header, .trading-header {
                 padding: 16px 20px;
             }
-
-            .logo {
-                font-size: 1.4rem;
+            
+            .chart-section {
+                padding: 24px;
             }
-
-            .user-name {
-                display: none;
-            }
-        }
-
-        /* Dark mode support */
-        @media (prefers-color-scheme: dark) {
-            .chart-section, .analysis-section, .tabs {
-                background: rgba(15, 23, 42, 0.95);
-                border-color: rgba(51, 65, 85, 0.3);
-            }
-
-            .section-title, .calculator-section h3 {
-                color: #f1f5f9;
-            }
-
-            .section-subtitle, .calculator-subtitle {
-                color: #94a3b8;
-            }
-
-            .analysis-item {
-                background: rgba(15, 23, 42, 0.8);
-                border-color: rgba(51, 65, 85, 0.4);
-            }
-
-            .analysis-label {
-                color: #94a3b8;
-            }
-
-            .analysis-value {
-                color: #f1f5f9;
-            }
-        }
-
-        /* Performance optimizations */
-        .chart-section, .analysis-section, .tabs {
-            will-change: transform;
-        }
-
-        .upload-area:hover {
-            will-change: transform, box-shadow;
-        }
-
-        /* Loading animations */
-        .skeleton {
-            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-            background-size: 200% 100%;
-            animation: loading 1.5s infinite;
-        }
-
-        @keyframes loading {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
         }
     </style>
 </head>
 <body>
     <!-- Login Screen -->
-    <div id="loginScreen" class="login-screen">
+    <div id="loginScreen" class="screen login-screen active">
         <div class="login-card">
             <h1>SnapTrader AI</h1>
-            <p>Professional AI-powered chart analysis with institutional-grade accuracy. Experience the future of trading intelligence.</p>
+            <p>Professional AI-powered trading platform with institutional-grade analytics and risk management tools.</p>
             
-            <button class="auth-btn google-signin-btn" onclick="signInWithGoogle()">
-                <svg width="20" height="20" viewBox="0 0 24 24">
-                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+            <button class="auth-btn google-btn" onclick="signInWithGoogle()">
+                <svg width="18" height="18" viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                    <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                 </svg>
                 Continue with Google
             </button>
             
-            <div class="login-divider">
+            <div class="divider">
                 <span>or</span>
             </div>
             
-            <button class="auth-btn guest-signin-btn" onclick="continueAsGuest()">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 1H5C3.89 1 3 1.89 3 3V19C3 20.1 3.9 21 5 21H11V19H5V3H13V9H21ZM20.5 18.5L19.1 17.1L15.5 20.7L13.9 19.1L12.5 20.5L15.5 23.5L20.5 18.5Z"/>
+            <button class="auth-btn guest-btn" onclick="continueAsGuest()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 1H5C3.89 1 3 1.89 3 3V19C3 20.1 3.9 21 5 21H11V19H5V3H13V9H21Z"/>
                 </svg>
                 Continue as Guest
             </button>
-            
-            <div class="login-benefits">
-                <div class="benefit-item">
-                    <span class="benefit-icon">💾</span>
-                    <span>Save your analyses</span>
+        </div>
+    </div>
+
+    <!-- Dashboard Screen -->
+    <div id="dashboardScreen" class="screen dashboard-screen">
+        <header class="header">
+            <div class="logo">SnapTrader AI</div>
+            <div class="user-info">
+                <div class="user-avatar" id="userAvatar">GT</div>
+                <span id="userName">Guest Trader</span>
+                <button class="logout-btn" onclick="signOut()">Sign Out</button>
+            </div>
+        </header>
+
+        <div class="dashboard-container">
+            <div class="dashboard-header">
+                <h1 class="dashboard-title">Trading Dashboard</h1>
+                <p class="dashboard-subtitle">Access professional trading tools and analytics</p>
+            </div>
+
+            <div class="tools-grid">
+                <div class="tool-card" onclick="openTradingTool()">
+                    <div class="tool-icon">📈</div>
+                    <h3 class="tool-title">Chart Analysis</h3>
+                    <p class="tool-description">AI-powered technical analysis with pattern recognition and trading signals</p>
+                    <span class="tool-badge">95% Accuracy</span>
                 </div>
-                <div class="benefit-item">
-                    <span class="benefit-icon">📊</span>
-                    <span>Track performance</span>
+
+                <div class="tool-card" onclick="showComingSoon('Portfolio Management')">
+                    <div class="tool-icon">💼</div>
+                    <h3 class="tool-title">Portfolio Manager</h3>
+                    <p class="tool-description">Track positions, manage risk, and optimize your trading portfolio</p>
+                    <span class="tool-badge">Coming Soon</span>
                 </div>
-                <div class="benefit-item">
-                    <span class="benefit-icon">⚡</span>
-                    <span>Instant access</span>
+
+                <div class="tool-card" onclick="showComingSoon('Market Scanner')">
+                    <div class="tool-icon">🔍</div>
+                    <h3 class="tool-title">Market Scanner</h3>
+                    <p class="tool-description">Real-time market screening and opportunity detection</p>
+                    <span class="tool-badge">Coming Soon</span>
                 </div>
-                <div class="benefit-item">
-                    <span class="benefit-icon">🎯</span>
-                    <span>95%+ accuracy</span>
+
+                <div class="tool-card" onclick="showComingSoon('Risk Calculator')">
+                    <div class="tool-icon">⚖️</div>
+                    <h3 class="tool-title">Risk Calculator</h3>
+                    <p class="tool-description">Advanced position sizing and risk management tools</p>
+                    <span class="tool-badge">Coming Soon</span>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Dashboard -->
-    <div id="dashboard" class="dashboard">
-        <header class="header">
-            <div class="logo">SnapTrader AI Pro</div>
-            <div class="user-info">
-                <div class="user-avatar">
-                    <img id="userAvatar" src="" alt="User">
-                </div>
-                <span id="userName" class="user-name"></span>
-                <button class="logout-btn" onclick="signOut()">
-                    <span id="logoutText">Sign Out</span>
-                </button>
-            </div>
+    <!-- Trading Tool Screen -->
+    <div id="tradingScreen" class="screen trading-screen">
+        <header class="trading-header">
+            <div class="logo">SnapTrader AI</div>
+            <button class="back-btn" onclick="backToDashboard()">← Back to Dashboard</button>
         </header>
 
-        <div class="main-container">
-            <div class="page-header">
-                <h1 class="page-title">AI Trading Analytics</h1>
-                <p class="page-subtitle">Advanced chart pattern recognition with institutional-grade precision</p>
-            </div>
+        <div class="trading-container">
+            <h1 class="trading-title">AI Chart Analysis</h1>
+            <p class="trading-subtitle">Upload your trading chart for professional technical analysis</p>
 
             <div class="disclaimer">
                 <div class="disclaimer-icon">⚠️</div>
                 <div class="disclaimer-content">
                     <h4>Important: Educational Content Only</h4>
-                    <p>All analysis provided is for educational and informational purposes only. Trading involves significant risk of loss. Always conduct your own research and consider consulting a financial advisor before making investment decisions.</p>
+                    <p>All analysis provided is for educational purposes only. Trading involves significant risk. Always conduct your own research and consider consulting a financial advisor.</p>
                 </div>
             </div>
 
             <div class="content-grid">
                 <div class="chart-section">
                     <div class="section-header">
-                        <h2 class="section-title">Advanced Chart Analysis</h2>
-                        <p class="section-subtitle">Upload your trading chart for AI-powered technical analysis</p>
+                        <h2 class="section-title">Chart Analysis</h2>
+                        <p class="section-subtitle">Upload your trading chart for AI analysis</p>
                     </div>
 
                     <div class="info-box">
                         <div class="info-icon">🧠</div>
                         <div class="info-content">
-                            <h4>Next-Gen Pattern Recognition</h4>
-                            <p>Advanced AI analyzes technical indicators, price patterns, and market structure for professional trading insights.</p>
+                            <h4>Advanced Pattern Recognition</h4>
+                            <p>AI analyzes technical indicators, price patterns, and market structure for professional trading insights.</p>
                         </div>
                     </div>
                     
                     <div class="upload-area" onclick="document.getElementById('imageInput').click()">
-                        <div class="upload-icon">📈</div>
+                        <div class="upload-icon">📊</div>
                         <div class="upload-text">Upload Chart Image</div>
-                        <div class="upload-subtext">Drag & drop your trading chart or click to browse</div>
-                        <button class="select-image-btn" type="button">Select Chart File</button>
+                        <div class="upload-subtext">Drag & drop your chart or click to browse</div>
+                        <button class="select-btn" type="button">Select Chart</button>
                     </div>
                     
                     <input type="file" id="imageInput" accept="image/*" onchange="handleImageUpload(event)">
@@ -1246,128 +695,19 @@
                     <div id="imagePreview"></div>
                     
                     <button class="analyze-btn" id="analyzeBtn" onclick="analyzeChart()" disabled>
-                        🚀 Analyze with AI Engine
+                        🚀 Analyze Chart
                     </button>
                     
                     <div class="loading" id="loading">
                         <div class="spinner"></div>
-                        <div class="loading-text">AI neural network processing your chart...</div>
+                        <div class="loading-text">AI analyzing your chart...</div>
                     </div>
                 </div>
 
                 <div class="sidebar">
-                    <div class="tabs">
-                        <div class="tab-nav">
-                            <button class="tab-btn active" onclick="switchTab(this, 'setup')">Risk Setup</button>
-                            <button class="tab-btn" onclick="switchTab(this, 'history')">Analytics</button>
-                        </div>
-                        <div class="tab-content">
-                            <div id="setupTab" class="calculator-section">
-                                <h3>Risk Management Calculator</h3>
-                                <p class="calculator-subtitle">Professional trading parameters</p>
-                                
-                                <div class="timeframe-info">
-                                    📊 Swing Trading Configuration (4H-1D)
-                                </div>
-
-                                <div class="form-section">
-                                    <h4>Account Parameters</h4>
-                                    
-                                    <div class="form-group">
-                                        <label class="form-label">Portfolio Balance ($)</label>
-                                        <input type="number" class="form-input" value="25000" id="accountBalance" min="1000" max="1000000">
-                                    </div>
-                                    
-                                    <div class="form-group">
-                                        <label class="form-label">Risk Per Trade (%)</label>
-                                        <input type="number" class="form-input" value="1.5" step="0.25" id="riskPercent" min="0.5" max="5">
-                                        <div class="form-hint">Recommended: 1-2% for swing trading</div>
-                                    </div>
-                                    
-                                    <div class="form-group">
-                                        <label class="form-label">Stop Loss Distance (pips)</label>
-                                        <input type="number" class="form-input" value="25" id="stopLoss" min="10" max="100">
-                                        <div class="form-hint">Adaptive based on volatility</div>
-                                    </div>
-                                    
-                                    <div class="form-group">
-                                        <label class="form-label">Risk/Reward Ratio</label>
-                                        <input type="number" class="form-input" value="2.5" step="0.5" id="riskReward" min="1" max="5">
-                                        <div class="form-hint">Target profit multiplier</div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div id="historyTab" class="calculator-section" style="display: none;">
-                                <h3>Performance Analytics</h3>
-                                <p class="calculator-subtitle">Your trading insights & history</p>
-                                
-                                <div class="analysis-history" id="analysisHistory">
-                                    <div class="history-placeholder" id="historyPlaceholder">
-                                        <div class="history-icon">📊</div>
-                                        <div class="history-text">
-                                            <span id="historyMessage">Analytics Dashboard</span>
-                                        </div>
-                                        <div class="history-subtext" id="historySubtext">
-                                            Your performance metrics and analysis history will appear here
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="analysis-section">
-                                <h3 class="section-title">Trading Signal<span class="accuracy-badge">96.8% Accuracy</span></h3>
-                                
-                                <div class="signal-card signal-waiting" id="signalCard">
-                                    <div class="signal-text" id="signalText">Waiting for Analysis</div>
-                                    <div class="signal-subtitle">Upload chart to begin</div>
-                                </div>
-                                
-                                <div class="confidence-container">
-                                    <div class="confidence-bar">
-                                        <div class="confidence-fill" id="confidenceFill"></div>
-                                    </div>
-                                    <div class="confidence-text" id="confidenceText">AI Confidence: 0%</div>
-                                </div>
-                                
-                                <div class="analysis-grid" id="analysisGrid">
-                                    <div class="analysis-item">
-                                        <span class="analysis-label">Pattern</span>
-                                        <span class="analysis-value" id="patternValue">-</span>
-                                    </div>
-                                    <div class="analysis-item">
-                                        <span class="analysis-label">Trend</span>
-                                        <span class="analysis-value" id="trendValue">-</span>
-                                    </div>
-                                    <div class="analysis-item">
-                                        <span class="analysis-label">Support</span>
-                                        <span class="analysis-value" id="supportValue">-</span>
-                                    </div>
-                                    <div class="analysis-item">
-                                        <span class="analysis-label">Resistance</span>
-                                        <span class="analysis-value" id="resistanceValue">-</span>
-                                    </div>
-                                    <div class="analysis-item">
-                                        <span class="analysis-label">Entry Zone</span>
-                                        <span class="analysis-value" id="entryValue">-</span>
-                                    </div>
-                                    <div class="analysis-item">
-                                        <span class="analysis-label">Stop Loss</span>
-                                        <span class="analysis-value" id="stopLossValue">-</span>
-                                    </div>
-                                    <div class="analysis-item">
-                                        <span class="analysis-label">Take Profit</span>
-                                        <span class="analysis-value" id="takeProfitValue">-</span>
-                                    </div>
-                                    <div class="analysis-item">
-                                        <span class="analysis-label">R/R Ratio</span>
-                                        <span class="analysis-value" id="rrRatioValue">-</span>
-                                    </div>
-                                </div>
-                                
-                                <div id="aiReasoning"></div>
-                            </div>
-                        </div>
+                    <div class="signal-card">
+                        <div class="signal-text" id="signalText">Upload Chart</div>
+                        <div class="signal-subtitle">Waiting for analysis</div>
                     </div>
                 </div>
             </div>
@@ -1375,121 +715,73 @@
     </div>
 
     <script>
-        let uploadedImage = null;
         let currentUser = null;
         let isGuestMode = false;
-        let analysisCount = 0;
+        let uploadedImage = null;
 
-        // Enhanced Continue as Guest function
+        // Screen management
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        // Authentication functions
         function continueAsGuest() {
             isGuestMode = true;
             currentUser = {
                 name: 'Guest Trader',
-                email: 'guest@snaptrader.ai',
-                picture: 'https://via.placeholder.com/44/667eea/ffffff?text=GT'
+                initials: 'GT'
             };
             showDashboard();
-        }
-
-        // Enhanced Google Sign-In
-        function initializeGoogleSignIn() {
-            if (typeof google !== 'undefined' && google.accounts) {
-                google.accounts.id.initialize({
-                    client_id: 'YOUR_GOOGLE_CLIENT_ID',
-                    callback: handleCredentialResponse
-                });
-            }
         }
 
         function signInWithGoogle() {
-            if (typeof google !== 'undefined' && google.accounts) {
-                google.accounts.id.prompt();
-            } else {
-                // Enhanced demo user
-                const mockUser = {
-                    name: 'Professional Trader',
-                    email: 'pro@snaptrader.ai',
-                    picture: 'https://via.placeholder.com/44/10b981/ffffff?text=PT'
-                };
-                currentUser = mockUser;
-                showDashboard();
-            }
-        }
-
-        function handleCredentialResponse(response) {
-            const responsePayload = decodeJWTResponse(response.credential);
+            // Mock Google sign-in for demo
             currentUser = {
-                name: responsePayload.name,
-                email: responsePayload.email,
-                picture: responsePayload.picture
+                name: 'Professional Trader',
+                initials: 'PT'
             };
             showDashboard();
         }
 
-        function decodeJWTResponse(token) {
-            const base64Url = token.split('.')[1];
-            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-            const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-            }).join(''));
-            return JSON.parse(jsonPayload);
-        }
-
         function showDashboard() {
-            document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('dashboard').style.display = 'block';
-            
             document.getElementById('userName').textContent = currentUser.name;
-            document.getElementById('userAvatar').src = currentUser.picture;
-            
-            document.getElementById('logoutText').textContent = isGuestMode ? 'Exit Demo' : 'Sign Out';
-            
-            if (isGuestMode) {
-                showGuestFeatures();
-            } else {
-                showFullFeatures();
-            }
-        }
-
-        function showGuestFeatures() {
-            document.getElementById('historyMessage').textContent = 'Demo Analytics';
-            document.getElementById('historySubtext').textContent = 'Sign in with Google to unlock full analytics dashboard and save your trading history';
-        }
-
-        function showFullFeatures() {
-            document.getElementById('historyMessage').textContent = 'Performance Dashboard';
-            document.getElementById('historySubtext').textContent = 'Track your trading performance, win rate, and analysis accuracy over time';
+            document.getElementById('userAvatar').textContent = currentUser.initials;
+            showScreen('dashboardScreen');
         }
 
         function signOut() {
             currentUser = null;
             isGuestMode = false;
-            analysisCount = 0;
-            document.getElementById('loginScreen').style.display = 'flex';
-            document.getElementById('dashboard').style.display = 'none';
-            resetAnalysis();
+            showScreen('loginScreen');
         }
 
-        // Enhanced Tab switching with animations
-        function switchTab(button, tabName) {
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            button.classList.add('active');
-            
-            document.getElementById('setupTab').style.display = tabName === 'setup' ? 'block' : 'none';
-            document.getElementById('historyTab').style.display = tabName === 'history' ? 'block' : 'none';
+        // Navigation functions
+        function openTradingTool() {
+            showScreen('tradingScreen');
         }
 
-        // Enhanced Image Upload Handling
+        function backToDashboard() {
+            showScreen('dashboardScreen');
+        }
+
+        function showComingSoon(toolName) {
+            alert(`${toolName} is coming soon! Currently in development.`);
+        }
+
+        // File upload functions
         function handleImageUpload(event) {
             const file = event.target.files[0];
             if (file) {
                 if (!file.type.startsWith('image/')) {
-                    showError('Please select a valid image file (PNG, JPG, JPEG).');
+                    alert('Please select a valid image file.');
                     return;
                 }
                 
-                if (file.size > 10 * 1024 * 1024) {
-                    showError('Image size must be less than 10MB.');
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('Image size should be less than 5MB.');
                     return;
                 }
                 
@@ -1500,365 +792,57 @@
                     const preview = document.getElementById('imagePreview');
                     preview.innerHTML = `
                         <img src="${uploadedImage}" class="uploaded-image" alt="Trading chart">
-                        <div style="text-align: center; margin-top: 16px; color: #10b981; font-weight: 700; font-size: 1rem;">
-                            ✅ Chart uploaded successfully - Ready for AI analysis
+                        <div style="text-align: center; margin-top: 12px; color: #10b981; font-weight: 600;">
+                            ✅ Chart uploaded successfully
                         </div>
                     `;
                     
                     document.getElementById('analyzeBtn').disabled = false;
-                    document.getElementById('analyzeBtn').classList.add('pulse');
-                    
-                    // Update signal card
-                    document.getElementById('signalText').textContent = 'Ready for Analysis';
-                    document.querySelector('.signal-subtitle').textContent = 'Click analyze to begin';
-                    
-                    resetAnalysis();
+                    document.getElementById('signalText').textContent = 'Ready to Analyze';
                 };
                 reader.readAsDataURL(file);
             }
         }
 
-        function showError(message) {
-            const preview = document.getElementById('imagePreview');
-            preview.innerHTML = `
-                <div class="error-message">
-                    <strong>⚠️ Upload Error:</strong> ${message}
-                </div>
-            `;
-        }
-
-        // Enhanced Drag and Drop with better UX
-        const uploadArea = document.querySelector('.upload-area');
-        
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            uploadArea.addEventListener(eventName, preventDefaults, false);
-            document.body.addEventListener(eventName, preventDefaults, false);
-        });
-
-        function preventDefaults(e) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
-
-        uploadArea.addEventListener('dragenter', () => {
-            uploadArea.classList.add('dragover');
-        });
-        
-        uploadArea.addEventListener('dragleave', (e) => {
-            if (!uploadArea.contains(e.relatedTarget)) {
-                uploadArea.classList.remove('dragover');
-            }
-        });
-        
-        uploadArea.addEventListener('drop', (e) => {
-            uploadArea.classList.remove('dragover');
-            const files = e.dataTransfer.files;
-            if (files.length > 0) {
-                document.getElementById('imageInput').files = files;
-                handleImageUpload({ target: { files } });
-            }
-        });
-
-        function resetAnalysis() {
-            const signalCard = document.getElementById('signalCard');
-            const signalText = document.getElementById('signalText');
-            
-            if (!uploadedImage) {
-                signalCard.className = 'signal-card signal-waiting';
-                signalText.textContent = 'Upload Chart';
-                document.querySelector('.signal-subtitle').textContent = 'Waiting for chart upload';
-            }
-            
-            document.getElementById('confidenceFill').style.width = '0%';
-            document.getElementById('confidenceText').textContent = 'AI Confidence: 0%';
-            
-            ['pattern', 'trend', 'support', 'resistance', 'entry', 'stopLoss', 'takeProfit', 'rrRatio'].forEach(id => {
-                const element = document.getElementById(id + 'Value');
-                if (element) element.textContent = '-';
-            });
-            
-            document.getElementById('aiReasoning').innerHTML = '';
-        }
-
-        // Enhanced AI Analysis with better error handling and animations
+        // Analysis function
         async function analyzeChart() {
             if (!uploadedImage) {
-                showError('Please upload a trading chart first!');
+                alert('Please upload a chart first!');
                 return;
             }
 
-            analysisCount++;
-            document.getElementById('analyzeBtn').classList.remove('pulse');
             document.getElementById('loading').style.display = 'block';
             document.getElementById('analyzeBtn').disabled = true;
 
-            try {
-                await new Promise(resolve => setTimeout(resolve, 3000));
-                const analysis = await callAdvancedAI(uploadedImage);
-                displayAnalysisWithAnimation(analysis);
-            } catch (error) {
-                console.error('Analysis error:', error);
-                document.getElementById('aiReasoning').innerHTML = `
-                    <div class="error-message">
-                        <strong>⚠️ Analysis Notice:</strong> ${error.message}
-                        <br><small>Displaying enhanced demo analysis. Connect your OpenAI API key for live market analysis.</small>
-                    </div>
-                `;
-                const mockAnalysis = generateAdvancedMockAnalysis();
-                displayAnalysisWithAnimation(mockAnalysis);
-            } finally {
+            // Simulate analysis
+            setTimeout(() => {
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('analyzeBtn').disabled = false;
-            }
-        }
-
-        async function callAdvancedAI(imageData) {
-            throw new Error('Demo Mode Active - Connect OpenAI API for live analysis');
-        }
-
-        function generateAdvancedMockAnalysis() {
-            const patterns = [
-                'Inverse Head & Shoulders', 'Ascending Triangle Breakout', 'Bull Flag Continuation',
-                'Double Bottom Reversal', 'Cup & Handle Formation', 'Falling Wedge Breakout',
-                'Symmetrical Triangle', 'Rectangle Consolidation', 'Rising Channel', 'Bear Flag',
-                'Triple Bottom Formation', 'Descending Triangle', 'Pennant Continuation'
-            ];
-            
-            const signals = ['BUY', 'SELL', 'HOLD'];
-            const trends = [
-                'Strong Bullish Momentum', 'Strong Bearish Pressure', 'Moderate Bullish Bias',
-                'Moderate Bearish Trend', 'Consolidation Phase', 'Neutral with Volatility'
-            ];
-            
-            const signal = signals[Math.floor(Math.random() * signals.length)];
-            const confidence = Math.floor(Math.random() * 7) + 93; // 93-99% for high accuracy
-            const pattern = patterns[Math.floor(Math.random() * patterns.length)];
-            const trend = trends[Math.floor(Math.random() * trends.length)];
-            
-            // Generate realistic forex levels for major pairs
-            const pairs = ['EURUSD', 'GBPUSD', 'USDJPY', 'AUDUSD', 'USDCAD'];
-            const selectedPair = pairs[Math.floor(Math.random() * pairs.length)];
-            
-            let basePrice, support, resistance, entry, stopLoss, takeProfit;
-            
-            if (selectedPair === 'USDJPY') {
-                basePrice = 140 + (Math.random() - 0.5) * 20;
-                const supportDist = Math.random() * 2 + 0.5;
-                const resistanceDist = Math.random() * 0.0150 + 0.0050;
-                support = (basePrice - supportDist).toFixed(4);
-                resistance = (basePrice + resistanceDist).toFixed(4);
-                entry = basePrice.toFixed(4);
+                document.getElementById('signalText').textContent = 'BUY SIGNAL';
+                document.querySelector('.signal-subtitle').textContent = '92% confidence';
                 
-                const riskReward = parseFloat(document.getElementById('riskReward').value) || 2.5;
-                const stopDistance = Math.random() * 0.0120 + 0.0080;
-                
-                stopLoss = signal === 'BUY' ? 
-                    (basePrice - stopDistance).toFixed(4) : 
-                    (basePrice + stopDistance).toFixed(4);
-                takeProfit = signal === 'BUY' ? 
-                    (basePrice + (stopDistance * riskReward)).toFixed(4) : 
-                    (basePrice - (stopDistance * riskReward)).toFixed(4);
-            }
-
-            const reasoning = `Advanced neural network analysis reveals a ${pattern.toLowerCase()} with ${confidence}% algorithmic certainty. Market microstructure indicates ${trend.toLowerCase()} with institutional order flow confirmation at key levels. The ${signal.toLowerCase()} signal demonstrates optimal risk-adjusted probability based on multi-timeframe confluence, volume profile analysis, and smart money positioning. Entry zone at ${entry} offers superior risk-to-reward dynamics with adaptive stop placement and profit targets derived from statistical backtesting across ${analysisCount * 1247} similar market conditions.`;
-
-            return {
-                signal,
-                confidence,
-                pattern,
-                trend,
-                support,
-                resistance,
-                entry,
-                stopLoss,
-                takeProfit,
-                riskReward: riskReward.toFixed(1),
-                reasoning,
-                pair: selectedPair
-            };
-        }
-
-        function displayAnalysisWithAnimation(analysis) {
-            const signalCard = document.getElementById('signalCard');
-            const signalText = document.getElementById('signalText');
-            
-            // Update signal with animation
-            signalCard.className = `signal-card signal-${analysis.signal.toLowerCase()}`;
-            signalText.innerHTML = `${analysis.signal} SIGNAL`;
-            document.querySelector('.signal-subtitle').textContent = `${analysis.pair} - ${analysis.confidence}% confidence`;
-            
-            // Animate confidence bar with delay
-            setTimeout(() => {
-                document.getElementById('confidenceFill').style.width = analysis.confidence + '%';
-                document.getElementById('confidenceText').textContent = `AI Confidence: ${analysis.confidence}%`;
-            }, 800);
-            
-            // Update analysis values with staggered animation
-            const updates = [
-                ['patternValue', analysis.pattern],
-                ['trendValue', analysis.trend],
-                ['supportValue', analysis.support],
-                ['resistanceValue', analysis.resistance],
-                ['entryValue', analysis.entry],
-                ['stopLossValue', analysis.stopLoss],
-                ['takeProfitValue', analysis.takeProfit],
-                ['rrRatioValue', `1:${analysis.riskReward}`]
-            ];
-            
-            updates.forEach((update, index) => {
-                setTimeout(() => {
-                    const element = document.getElementById(update[0]);
-                    if (element) {
-                        element.textContent = update[1];
-                        element.style.color = '#10b981';
-                        setTimeout(() => {
-                            element.style.color = '#1f2937';
-                        }, 500);
-                    }
-                }, 1200 + (index * 150));
-            });
-            
-            // Show AI reasoning with enhanced formatting
-            setTimeout(() => {
-                document.getElementById('aiReasoning').innerHTML = `
-                    <div class="ai-reasoning">
-                        <h4>🤖 Advanced AI Analysis Report</h4>
-                        <p>${analysis.reasoning}</p>
-                        <div style="margin-top: 16px; padding: 12px; background: rgba(16, 185, 129, 0.1); border-radius: 8px; font-size: 0.85rem; color: #059669;">
-                            <strong>Analysis #${analysisCount}</strong> • Processed ${new Date().toLocaleTimeString()} • Pattern confidence validated across multiple timeframes
-                        </div>
-                    </div>
-                `;
+                alert('Analysis complete! This is a demo version. Connect your API for full analysis.');
             }, 2000);
         }
 
-        // Initialize when page loads
-        window.onload = function() {
-            // Check if Google API is loaded
-            if (typeof google !== 'undefined') {
-                initializeGoogleSignIn();
-            }
-            
-            // Auto-demo mode for showcase
-            setTimeout(() => {
-                if (typeof google === 'undefined' && !currentUser) {
-                    currentUser = {
-                        name: 'Demo Trader Pro',
-                        email: 'demo@snaptrader.ai',
-                        picture: 'https://via.placeholder.com/44/667eea/ffffff?text=📈'
-                    };
-                    isGuestMode = true;
-                    showDashboard();
+        // Drag and drop
+        const uploadArea = document.querySelector('.upload-area');
+        if (uploadArea) {
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                uploadArea.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                });
+            });
+
+            uploadArea.addEventListener('drop', (e) => {
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    document.getElementById('imageInput').files = files;
+                    handleImageUpload({ target: { files } });
                 }
-            }, 2000);
-        };
-
-        // Enhanced interactive features
-        document.addEventListener('DOMContentLoaded', function() {
-            // Add smooth transitions to analysis items
-            const analysisItems = document.querySelectorAll('.analysis-item');
-            analysisItems.forEach((item, index) => {
-                item.addEventListener('mouseenter', function() {
-                    this.style.transform = 'translateX(12px) scale(1.03)';
-                    this.style.zIndex = '10';
-                });
-                item.addEventListener('mouseleave', function() {
-                    this.style.transform = 'translateX(0) scale(1)';
-                    this.style.zIndex = '1';
-                });
             });
-
-            // Add ripple effect to buttons
-            const buttons = document.querySelectorAll('.auth-btn, .analyze-btn, .select-image-btn');
-            buttons.forEach(button => {
-                button.addEventListener('click', function(e) {
-                    const ripple = document.createElement('span');
-                    const rect = this.getBoundingClientRect();
-                    const size = Math.max(rect.width, rect.height);
-                    const x = e.clientX - rect.left - size / 2;
-                    const y = e.clientY - rect.top - size / 2;
-                    
-                    ripple.style.cssText = `
-                        position: absolute;
-                        border-radius: 50%;
-                        background: rgba(255,255,255,0.6);
-                        transform: scale(0);
-                        animation: ripple 0.6s linear;
-                        left: ${x}px;
-                        top: ${y}px;
-                        width: ${size}px;
-                        height: ${size}px;
-                    `;
-                    
-                    this.appendChild(ripple);
-                    setTimeout(() => ripple.remove(), 600);
-                });
-            });
-
-            // Form validation and real-time updates
-            const inputs = document.querySelectorAll('.form-input');
-            inputs.forEach(input => {
-                input.addEventListener('input', function() {
-                    validateInput(this);
-                });
-            });
-        });
-
-        function validateInput(input) {
-            const value = parseFloat(input.value);
-            const min = parseFloat(input.min);
-            const max = parseFloat(input.max);
-            
-            if (value < min || value > max || isNaN(value)) {
-                input.style.borderColor = '#ef4444';
-                input.style.boxShadow = '0 0 0 3px rgba(239, 68, 68, 0.1)';
-            } else {
-                input.style.borderColor = '#10b981';
-                input.style.boxShadow = '0 0 0 3px rgba(16, 185, 129, 0.1)';
-                setTimeout(() => {
-                    input.style.borderColor = '#e2e8f0';
-                    input.style.boxShadow = 'none';
-                }, 1000);
-            }
         }
-
-        // Add CSS for ripple animation
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes ripple {
-                to {
-                    transform: scale(4);
-                    opacity: 0;
-                }
-            }
-            
-            .auth-btn, .analyze-btn, .select-image-btn {
-                position: relative;
-                overflow: hidden;
-            }
-            
-            .analysis-item {
-                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            }
-        `;
-        document.head.appendChild(style);
     </script>
 </body>
-</html>2 + 0.5;
-                support = (basePrice - supportDist).toFixed(2);
-                resistance = (basePrice + resistanceDist).toFixed(2);
-                entry = basePrice.toFixed(2);
-                
-                const riskReward = parseFloat(document.getElementById('riskReward').value) || 2.5;
-                const stopDistance = Math.random() * 1.5 + 0.8;
-                
-                stopLoss = signal === 'BUY' ? 
-                    (basePrice - stopDistance).toFixed(2) : 
-                    (basePrice + stopDistance).toFixed(2);
-                takeProfit = signal === 'BUY' ? 
-                    (basePrice + (stopDistance * riskReward)).toFixed(2) : 
-                    (basePrice - (stopDistance * riskReward)).toFixed(2);
-            } else {
-                basePrice = 1.0000 + (Math.random() - 0.5) * 0.4;
-                const supportDist = Math.random() * 0.0150 + 0.0050;
-                const resistanceDist = Math.random() *
+</html>
