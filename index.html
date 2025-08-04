@@ -1,63 +1,109 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>AI Product Comparison Tool</title>
+  <title>AI Dashboard</title>
   <style>
-    body { font-family: Arial, sans-serif; background: #f5f5f5; padding: 2rem; }
-    #app { max-width: 700px; margin: auto; background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 0 20px rgba(0,0,0,0.05); }
-    input, button, textarea { width: 100%; padding: 1rem; margin-top: 1rem; border-radius: 8px; border: 1px solid #ccc; }
+    body { font-family: Arial, sans-serif; margin: 0; background: #f7f7f7; }
+    #startScreen, #dashboard { display: none; padding: 2rem; max-width: 800px; margin: auto; }
+    #startScreen { text-align: center; padding-top: 10vh; }
+    .box { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 0 15px rgba(0,0,0,0.05); margin-bottom: 2rem; }
+    input, textarea, button { width: 100%; padding: 1rem; margin-top: 1rem; border-radius: 8px; border: 1px solid #ccc; }
     button { background-color: black; color: white; font-weight: bold; cursor: pointer; }
-    #output { margin-top: 2rem; white-space: pre-wrap; background: #f0f0f0; padding: 1rem; border-radius: 8px; }
+    #results { white-space: pre-wrap; background: #f1f1f1; padding: 1rem; border-radius: 8px; margin-top: 1rem; }
   </style>
 </head>
 <body>
-  <div id="app">
-    <h2>Compare Products with AI</h2>
+
+<div id="startScreen">
+  <h1>Welcome to AI Dashboard</h1>
+  <p>Compare products or summarize websites instantly using AI.</p>
+  <button onclick="enterDashboard()">Continue as Guest</button>
+</div>
+
+<div id="dashboard">
+  <div class="box">
+    <h2>🔍 AI Product Comparison</h2>
     <input type="text" id="productInput" placeholder="e.g. iPhone 15 vs Galaxy S24" />
     <button onclick="compareProducts()">Compare</button>
-    <div id="output"></div>
+    <div id="productResult" class="results"></div>
   </div>
 
-  <script>
-    const apiKey = "YOUR_OPENAI_API_KEY"; // Replace this with your actual OpenAI key
+  <div class="box">
+    <h2>🌐 AI Website Summarizer</h2>
+    <input type="text" id="urlInput" placeholder="Paste a website URL (e.g. https://example.com)" />
+    <button onclick="summarizeWebsite()">Summarize Site</button>
+    <div id="urlResult" class="results"></div>
+  </div>
+</div>
 
-    async function compareProducts() {
-      const input = document.getElementById("productInput").value;
-      const outputDiv = document.getElementById("output");
+<script>
+  // 🔐 Set your OpenAI API Key here
+  const apiKey = "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"; // 👈 Replace this with your key
 
-      if (!input.trim()) {
-        outputDiv.innerText = "Please enter product names.";
-        return;
-      }
+  function enterDashboard() {
+    document.getElementById("startScreen").style.display = "none";
+    document.getElementById("dashboard").style.display = "block";
+  }
 
-      outputDiv.innerText = "Loading comparison...";
+  async function compareProducts() {
+    const input = document.getElementById("productInput").value;
+    const output = document.getElementById("productResult");
+    if (!input.trim()) return output.innerText = "Please enter products to compare.";
+    output.innerText = "Loading...";
 
-      const prompt = `Compare these products in detail: ${input}.
-Give features, pros/cons, and a final verdict.`;
+    const prompt = `Compare these products: ${input}. List features, pros and cons, and give a final verdict.`;
+    const result = await askOpenAI(prompt);
+    output.innerText = result;
+  }
 
-      try {
-        const response = await fetch("https://api.openai.com/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${apiKey}`
-          },
-          body: JSON.stringify({
-            model: "gpt-4",
-            messages: [{ role: "user", content: prompt }],
-            temperature: 0.7
-          })
-        });
+  async function summarizeWebsite() {
+    const url = document.getElementById("urlInput").value;
+    const output = document.getElementById("urlResult");
+    if (!url.trim()) return output.innerText = "Please enter a URL.";
+    output.innerText = "Loading and analyzing site...";
 
-        const data = await response.json();
-        const result = data.choices?.[0]?.message?.content || "No response.";
-        outputDiv.innerText = result;
-      } catch (err) {
-        outputDiv.innerText = "Error: " + err.message;
-      }
+    const siteText = await fetchWebsiteText(url);
+    if (!siteText) return output.innerText = "Couldn't fetch website content.";
+    
+    const prompt = `Summarize the content of this website:\n\n${siteText}`;
+    const result = await askOpenAI(prompt);
+    output.innerText = result;
+  }
+
+  async function fetchWebsiteText(url) {
+    try {
+      const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
+      const data = await res.json();
+      const text = data.contents.replace(/<[^>]+>/g, '').slice(0, 3000); // Clean HTML
+      return text;
+    } catch (e) {
+      return null;
     }
-  </script>
+  }
+
+  async function askOpenAI(prompt) {
+    try {
+      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          model: "gpt-4",
+          messages: [{ role: "user", content: prompt }],
+          temperature: 0.7
+        })
+      });
+      const data = await response.json();
+      return data.choices?.[0]?.message?.content || "No response.";
+    } catch (e) {
+      return "Error connecting to AI.";
+    }
+  }
+</script>
+
 </body>
 </html>
