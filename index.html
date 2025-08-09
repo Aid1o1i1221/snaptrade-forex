@@ -1,851 +1,259 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MP4 & MP3 Creator</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+import React, { useState, useEffect, useRef } from "react";
+// SnapTrade Image Analyzer - Single-file React component (TailwindCSS)
+// Default export: <SnapTradeImageAnalyzer />
+// Notes for integrator:
+// 1) This component expects a backend endpoint at /api/analyze that accepts a JSON body { imageUrl }
+//    and returns a JSON response like:
+//    {
+//      annotatedImageUrl: string, // optional - a server-generated annotated image
+//      predictions: [
+//        { type: 'buy'|'sell'|'level', price: number, label: string, confidence: number }
+//      ],
+//      summary: string
+//    }
+//    The backend should forward the uploaded image to OpenAI Vision or your model and return structured results.
+// 2) This component integrates with Supabase for Google sign-in and storage. Replace the import below with
+//    your configured supabase client (or pass a supabase client prop). The example assumes a global `supabase` export.
+// 3) Environment variables required: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY
+// 4) The UI styling uses Tailwind CSS and a modern black-and-white theme per your preferences.
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            color: #333;
-        }
+// --- Replace with your Supabase client import ---
+import { createClient } from "@supabase/supabase-js";
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://ewcskjcjnhewiwqkkvho.supabase.co"; // example
+const SUPABASE_ANON = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON);
 
-        .header {
-            text-align: center;
-            color: white;
-            margin-bottom: 3rem;
-        }
+export default function SnapTradeImageAnalyzer() {
+  const [user, setUser] = useState(null);
+  const [file, setFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState(null);
+  const fileInputRef = useRef(null);
 
-        .header h1 {
-            font-size: 3rem;
-            margin-bottom: 0.5rem;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        }
+  useEffect(() => {
+    // Restore session
+    supabase.auth.getSession().then(({ data }) => {
+      if (data?.session?.user) setUser(data.session.user);
+    });
 
-        .header p {
-            font-size: 1.2rem;
-            opacity: 0.9;
-        }
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
 
-        .main-content {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2rem;
-            margin-bottom: 3rem;
-        }
+    return () => listener?.subscription?.unsubscribe?.();
+  }, []);
 
-        .card {
-            background: white;
-            border-radius: 20px;
-            padding: 2rem;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            transition: transform 0.3s ease;
-        }
+  useEffect(() => {
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    setPreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [file]);
 
-        .card:hover {
-            transform: translateY(-5px);
-        }
+  async function signInWithGoogle() {
+    try {
+      await supabase.auth.signInWithOAuth({ provider: "google" });
+    } catch (err) {
+      console.error(err);
+      setError("Failed to sign in with Google.");
+    }
+  }
 
-        .card-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 2rem;
-        }
+  async function signOut() {
+    await supabase.auth.signOut();
+    setUser(null);
+  }
 
-        .card-icon {
-            font-size: 2.5rem;
-            margin-right: 1rem;
-        }
+  async function uploadAndAnalyze() {
+    if (!file) return setError("Please choose an image first.");
+    setError(null);
+    setResult(null);
 
-        .card-title {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: #333;
-        }
+    try {
+      setUploading(true);
+      // create a unique filename
+      const fileExt = file.name.split('.').pop();
+      const fileName = `chart_${Date.now()}.${fileExt}`;
+      const filePath = `${fileName}`;
 
-        .recording-section {
-            margin-bottom: 2rem;
-        }
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('charts')
+        .upload(filePath, file, { cacheControl: '3600', upsert: false });
 
-        .controls {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-            flex-wrap: wrap;
-        }
+      if (uploadError) throw uploadError;
 
-        .btn {
-            padding: 0.8rem 1.5rem;
-            border: none;
-            border-radius: 50px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
+      // get public URL (make sure your bucket policy allows public read or generate a signed URL from the server)
+      const { data: publicUrlData } = supabase.storage.from('charts').getPublicUrl(filePath);
+      const publicUrl = publicUrlData.publicUrl;
 
-        .btn-primary {
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            color: white;
-        }
+      setUploading(false);
+      // send to your backend analyze endpoint
+      setAnalyzing(true);
 
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102,126,234,0.4);
-        }
+      const resp = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageUrl: publicUrl }),
+      });
 
-        .btn-danger {
-            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
-            color: white;
-        }
+      if (!resp.ok) {
+        const text = await resp.text();
+        throw new Error(`Analyze failed: ${text}`);
+      }
 
-        .btn-danger:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(255,107,107,0.4);
-        }
+      const json = await resp.json();
+      setResult(json);
+    } catch (e) {
+      console.error(e);
+      setError(e.message || String(e));
+    } finally {
+      setUploading(false);
+      setAnalyzing(false);
+    }
+  }
 
-        .btn-success {
-            background: linear-gradient(45deg, #51cf66, #40c057);
-            color: white;
-        }
+  function onPickFile(e) {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    // basic validation
+    if (!f.type.startsWith('image/')) return setError('Please upload an image file.');
+    setFile(f);
+  }
 
-        .btn-success:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(81,207,102,0.4);
-        }
+  return (
+    <div className="min-h-screen bg-white text-gray-900 flex items-center justify-center p-6">
+      <div className="w-full max-w-5xl bg-black/5 rounded-2xl p-6 shadow-lg">
+        <header className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-3xl font-extrabold">SnapTrade — Image AI Chart Analyzer</h1>
+            <p className="mt-1 text-sm text-gray-600">Upload a chart image and get AI-driven buy / sell signals instantly.</p>
+          </div>
+          <div className="flex items-center gap-3">
+            {user ? (
+              <div className="flex items-center gap-3">
+                <img src={user?.user_metadata?.avatar_url || user?.user_metadata?.picture} alt="avatar" className="w-9 h-9 rounded-full" />
+                <button onClick={signOut} className="px-3 py-1 text-sm rounded-md border">Sign out</button>
+              </div>
+            ) : (
+              <button onClick={signInWithGoogle} className="px-4 py-2 rounded-md bg-black text-white text-sm">Sign in with Google</button>
+            )}
+          </div>
+        </header>
 
-        .btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none !important;
-        }
+        <main className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <section className="p-4 bg-white rounded-2xl shadow-inner flex flex-col gap-4">
+            <label className="block text-sm font-medium">Choose chart image</label>
+            <input ref={fileInputRef} type="file" accept="image/*" onChange={onPickFile} className="mb-2" />
 
-        .preview-area {
-            background: #f8f9fa;
-            border-radius: 10px;
-            padding: 1.5rem;
-            text-align: center;
-            margin-bottom: 1.5rem;
-            min-height: 200px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-        }
+            <div className="flex gap-2">
+              <button
+                disabled={!file || uploading || analyzing}
+                onClick={uploadAndAnalyze}
+                className="px-4 py-2 rounded-md border disabled:opacity-50"
+              >
+                {uploading ? 'Uploading...' : analyzing ? 'Analyzing...' : 'Analyze Image'}
+              </button>
 
-        .preview-area video,
-        .preview-area audio {
-            max-width: 100%;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
+              <button
+                onClick={() => { setFile(null); setPreviewUrl(null); setResult(null); setError(null); }}
+                className="px-4 py-2 rounded-md border"
+              >
+                Reset
+              </button>
+            </div>
 
-        .upload-area {
-            border: 2px dashed #ccc;
-            border-radius: 10px;
-            padding: 2rem;
-            text-align: center;
-            margin-bottom: 1.5rem;
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
+            {error && <div className="text-sm text-red-600">{error}</div>}
 
-        .upload-area:hover {
-            border-color: #667eea;
-            background: #f8f9ff;
-        }
+            {previewUrl ? (
+              <div className="mt-3">
+                <p className="text-xs text-gray-500 mb-2">Preview</p>
+                <div className="w-full rounded-md overflow-hidden border">
+                  <img src={previewUrl} alt="preview" className="w-full h-auto block" />
+                </div>
+              </div>
+            ) : (
+              <div className="mt-3 text-sm text-gray-500">No image selected.</div>
+            )}
 
-        .upload-area.dragover {
-            border-color: #667eea;
-            background: #f0f4ff;
-        }
+            <div className="mt-auto text-xs text-gray-500">
+              <strong>Disclaimer:</strong> This tool provides AI-generated trading ideas and is for educational purposes only. Trading involves risk. Always do your own research before risking capital.
+            </div>
+          </section>
 
-        .file-input {
-            display: none;
-        }
+          <section className="p-4 bg-white rounded-2xl shadow-inner flex flex-col gap-4">
+            <h2 className="text-lg font-semibold">AI Analysis</h2>
 
-        .status {
-            padding: 1rem;
-            border-radius: 10px;
-            margin-bottom: 1rem;
-            text-align: center;
-            font-weight: 500;
-        }
+            {!result && !analyzing && <div className="text-sm text-gray-500">No analysis yet. Upload a chart and click "Analyze Image".</div>}
 
-        .status.recording {
-            background: #ffe8e8;
-            color: #c92a2a;
-            border: 1px solid #ffa8a8;
-        }
+            {analyzing && (
+              <div className="flex items-center gap-3">
+                <div className="loader w-6 h-6 rounded-full border-4 border-dashed border-black/40 animate-spin"></div>
+                <div className="text-sm">Analyzing image with AI — this typically takes a few seconds.</div>
+              </div>
+            )}
 
-        .status.processing {
-            background: #fff3cd;
-            color: #856404;
-            border: 1px solid #ffeaa7;
-        }
-
-        .status.success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-
-        .format-options {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-            flex-wrap: wrap;
-        }
-
-        .format-option {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .format-option input[type="radio"] {
-            margin: 0;
-        }
-
-        .advanced-section {
-            background: white;
-            border-radius: 20px;
-            padding: 2rem;
-            margin-top: 2rem;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-        }
-
-        .advanced-controls {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .control-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .control-group label {
-            font-weight: 500;
-            color: #555;
-        }
-
-        .control-group input,
-        .control-group select {
-            padding: 0.5rem;
-            border: 2px solid #e9ecef;
-            border-radius: 5px;
-            font-size: 1rem;
-        }
-
-        .control-group input:focus,
-        .control-group select:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .timer {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #667eea;
-            text-align: center;
-            margin: 1rem 0;
-        }
-
-        @media (max-width: 768px) {
-            .main-content {
-                grid-template-columns: 1fr;
-            }
-            
-            .controls {
-                justify-content: center;
-            }
-            
-            .btn {
-                flex: 1;
-                min-width: 120px;
-            }
-            
-            .header h1 {
-                font-size: 2rem;
-            }
-        }
-
-        .pulse {
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>🎬 MP4 & MP3 Creator</h1>
-            <p>Record, convert, and create high-quality media files</p>
-        </div>
-
-        <div class="main-content">
-            <!-- Video Creator -->
-            <div class="card">
-                <div class="card-header">
-                    <div class="card-icon">🎥</div>
-                    <div class="card-title">Video Creator (MP4)</div>
+            {result && (
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-sm font-medium">Summary</h3>
+                  <p className="text-sm text-gray-700">{result.summary}</p>
                 </div>
 
-                <div class="recording-section">
-                    <div id="videoStatus" class="status" style="display: none;"></div>
-                    <div class="timer" id="videoTimer">00:00</div>
-                    
-                    <div class="controls">
-                        <button id="startVideoBtn" class="btn btn-primary">
-                            🎬 Start Recording
-                        </button>
-                        <button id="stopVideoBtn" class="btn btn-danger" disabled>
-                            ⏹️ Stop Recording
-                        </button>
-                        <button id="pauseVideoBtn" class="btn" style="background: #ffa502; color: white;" disabled>
-                            ⏸️ Pause
-                        </button>
-                    </div>
-
-                    <div class="preview-area" id="videoPreview">
-                        <div style="color: #666;">
-                            <div style="font-size: 3rem; margin-bottom: 1rem;">📹</div>
-                            <p>Click "Start Recording" to begin video capture</p>
+                <div>
+                  <h3 className="text-sm font-medium">Signals</h3>
+                  <div className="mt-2 grid gap-2">
+                    {result.predictions?.length > 0 ? result.predictions.map((p, i) => (
+                      <div key={i} className="flex items-center justify-between p-3 border rounded-md">
+                        <div>
+                          <div className="text-sm font-semibold">{p.label}</div>
+                          <div className="text-xs text-gray-500">Price: {p.price}</div>
                         </div>
-                    </div>
-
-                    <div class="upload-area" id="videoUpload">
-                        <div style="font-size: 2rem; margin-bottom: 1rem;">📁</div>
-                        <p>Or drag & drop a video file here to convert</p>
-                        <input type="file" id="videoFileInput" class="file-input" accept="video/*">
-                    </div>
-                </div>
-            </div>
-
-            <!-- Audio Creator -->
-            <div class="card">
-                <div class="card-header">
-                    <div class="card-icon">🎵</div>
-                    <div class="card-title">Audio Creator (MP3)</div>
-                </div>
-
-                <div class="recording-section">
-                    <div id="audioStatus" class="status" style="display: none;"></div>
-                    <div class="timer" id="audioTimer">00:00</div>
-                    
-                    <div class="controls">
-                        <button id="startAudioBtn" class="btn btn-primary">
-                            🎤 Start Recording
-                        </button>
-                        <button id="stopAudioBtn" class="btn btn-danger" disabled>
-                            ⏹️ Stop Recording
-                        </button>
-                        <button id="pauseAudioBtn" class="btn" style="background: #ffa502; color: white;" disabled>
-                            ⏸️ Pause
-                        </button>
-                    </div>
-
-                    <div class="preview-area" id="audioPreview">
-                        <div style="color: #666;">
-                            <div style="font-size: 3rem; margin-bottom: 1rem;">🎤</div>
-                            <p>Click "Start Recording" to begin audio capture</p>
+                        <div className="text-right">
+                          <div className={`text-sm font-bold ${p.type === 'buy' ? 'text-green-600' : p.type === 'sell' ? 'text-red-600' : 'text-gray-700'}`}>
+                            {p.type.toUpperCase()}
+                          </div>
+                          <div className="text-xs text-gray-500">Confidence: {(p.confidence * 100).toFixed(0)}%</div>
                         </div>
-                    </div>
+                      </div>
+                    )) : <div className="text-sm text-gray-500">No signals detected.</div>}
+                  </div>
+                </div>
 
-                    <div class="upload-area" id="audioUpload">
-                        <div style="font-size: 2rem; margin-bottom: 1rem;">📁</div>
-                        <p>Or drag & drop an audio file here to convert</p>
-                        <input type="file" id="audioFileInput" class="file-input" accept="audio/*">
-                    </div>
+                <div>
+                  <h3 className="text-sm font-medium">Annotated chart</h3>
+                  <div className="mt-2 border rounded-md overflow-hidden">
+                    {result.annotatedImageUrl ? (
+                      <img src={result.annotatedImageUrl} alt="annotated" className="w-full h-auto" />
+                    ) : (
+                      <div className="p-4 text-sm text-gray-500">No annotated image available. Your backend can return an annotated image URL to display overlays.</div>
+                    )}
+                  </div>
                 </div>
-            </div>
-        </div>
 
-        <!-- Advanced Options -->
-        <div class="advanced-section">
-            <h3 style="margin-bottom: 1.5rem; color: #333;">⚙️ Advanced Options</h3>
-            
-            <div class="advanced-controls">
-                <div class="control-group">
-                    <label>Video Quality</label>
-                    <select id="videoQuality">
-                        <option value="1080p">1080p (HD)</option>
-                        <option value="720p" selected>720p (Standard)</option>
-                        <option value="480p">480p (Mobile)</option>
-                    </select>
+                <div>
+                  <h3 className="text-sm font-medium">Actionable plan (example)</h3>
+                  <ol className="list-decimal pl-5 text-sm text-gray-700">
+                    <li>Consider entering at the highest-confidence BUY zone.</li>
+                    <li>Set a stop loss below the nearest support level identified by the model.</li>
+                    <li>Take partial profits at the first SELL level and move stop to breakeven.</li>
+                  </ol>
                 </div>
-                
-                <div class="control-group">
-                    <label>Audio Quality</label>
-                    <select id="audioQuality">
-                        <option value="192">192 kbps (High)</option>
-                        <option value="128" selected>128 kbps (Standard)</option>
-                        <option value="96">96 kbps (Mobile)</option>
-                    </select>
-                </div>
-                
-                <div class="control-group">
-                    <label>Frame Rate (FPS)</label>
-                    <select id="frameRate">
-                        <option value="60">60 FPS</option>
-                        <option value="30" selected>30 FPS</option>
-                        <option value="24">24 FPS</option>
-                    </select>
-                </div>
-                
-                <div class="control-group">
-                    <label>Max Duration (minutes)</label>
-                    <input type="number" id="maxDuration" value="10" min="1" max="60">
-                </div>
-            </div>
-        </div>
+
+                <div className="text-xs text-gray-500">Timestamps: {new Date().toLocaleString()}</div>
+              </div>
+            )}
+
+          </section>
+        </main>
+
+        <footer className="mt-6 text-center text-xs text-gray-500">
+          Built for quick chart-analysis. Connect your backend to OpenAI Vision / other models to power predictions.
+        </footer>
+      </div>
     </div>
-
-    <script>
-        class MediaCreator {
-            constructor() {
-                this.videoRecorder = null;
-                this.audioRecorder = null;
-                this.videoStream = null;
-                this.audioStream = null;
-                this.videoChunks = [];
-                this.audioChunks = [];
-                this.videoTimer = { start: 0, elapsed: 0, interval: null };
-                this.audioTimer = { start: 0, elapsed: 0, interval: null };
-                this.isPaused = false;
-                
-                this.init();
-            }
-
-            init() {
-                this.setupEventListeners();
-                this.setupDragAndDrop();
-            }
-
-            setupEventListeners() {
-                // Video controls
-                document.getElementById('startVideoBtn').addEventListener('click', () => this.startVideoRecording());
-                document.getElementById('stopVideoBtn').addEventListener('click', () => this.stopVideoRecording());
-                document.getElementById('pauseVideoBtn').addEventListener('click', () => this.pauseVideoRecording());
-                
-                // Audio controls
-                document.getElementById('startAudioBtn').addEventListener('click', () => this.startAudioRecording());
-                document.getElementById('stopAudioBtn').addEventListener('click', () => this.stopAudioRecording());
-                document.getElementById('pauseAudioBtn').addEventListener('click', () => this.pauseAudioRecording());
-                
-                // File inputs
-                document.getElementById('videoFileInput').addEventListener('change', (e) => this.handleVideoFile(e));
-                document.getElementById('audioFileInput').addEventListener('change', (e) => this.handleAudioFile(e));
-                
-                // Upload areas
-                document.getElementById('videoUpload').addEventListener('click', () => {
-                    document.getElementById('videoFileInput').click();
-                });
-                document.getElementById('audioUpload').addEventListener('click', () => {
-                    document.getElementById('audioFileInput').click();
-                });
-            }
-
-            setupDragAndDrop() {
-                const videoUpload = document.getElementById('videoUpload');
-                const audioUpload = document.getElementById('audioUpload');
-
-                [videoUpload, audioUpload].forEach(area => {
-                    area.addEventListener('dragover', (e) => {
-                        e.preventDefault();
-                        area.classList.add('dragover');
-                    });
-
-                    area.addEventListener('dragleave', () => {
-                        area.classList.remove('dragover');
-                    });
-
-                    area.addEventListener('drop', (e) => {
-                        e.preventDefault();
-                        area.classList.remove('dragover');
-                        
-                        const files = Array.from(e.dataTransfer.files);
-                        if (files.length > 0) {
-                            const file = files[0];
-                            if (area === videoUpload && file.type.startsWith('video/')) {
-                                this.processVideoFile(file);
-                            } else if (area === audioUpload && file.type.startsWith('audio/')) {
-                                this.processAudioFile(file);
-                            }
-                        }
-                    });
-                });
-            }
-
-            async startVideoRecording() {
-                try {
-                    this.showStatus('videoStatus', 'Requesting camera access...', 'processing');
-                    
-                    const constraints = {
-                        video: {
-                            width: { ideal: 1280 },
-                            height: { ideal: 720 },
-                            frameRate: { ideal: parseInt(document.getElementById('frameRate').value) }
-                        },
-                        audio: true
-                    };
-
-                    this.videoStream = await navigator.mediaDevices.getUserMedia(constraints);
-                    
-                    // Show preview
-                    const preview = document.getElementById('videoPreview');
-                    preview.innerHTML = '<video id="videoPreviewElement" autoplay muted style="max-width: 100%; border-radius: 10px;"></video>';
-                    document.getElementById('videoPreviewElement').srcObject = this.videoStream;
-
-                    // Setup recorder
-                    this.videoRecorder = new MediaRecorder(this.videoStream, {
-                        mimeType: 'video/webm;codecs=vp9'
-                    });
-
-                    this.videoChunks = [];
-                    this.videoRecorder.ondataavailable = (event) => {
-                        if (event.data.size > 0) {
-                            this.videoChunks.push(event.data);
-                        }
-                    };
-
-                    this.videoRecorder.onstop = () => {
-                        this.processVideoRecording();
-                    };
-
-                    this.videoRecorder.start();
-                    this.startTimer('video');
-                    this.showStatus('videoStatus', '🔴 Recording in progress...', 'recording');
-                    
-                    // Update buttons
-                    document.getElementById('startVideoBtn').disabled = true;
-                    document.getElementById('stopVideoBtn').disabled = false;
-                    document.getElementById('pauseVideoBtn').disabled = false;
-
-                } catch (error) {
-                    console.error('Error starting video recording:', error);
-                    this.showStatus('videoStatus', 'Error: Could not access camera/microphone', 'error');
-                }
-            }
-
-            stopVideoRecording() {
-                if (this.videoRecorder && this.videoRecorder.state !== 'inactive') {
-                    this.videoRecorder.stop();
-                }
-                
-                if (this.videoStream) {
-                    this.videoStream.getTracks().forEach(track => track.stop());
-                }
-                
-                this.stopTimer('video');
-                this.showStatus('videoStatus', 'Processing video...', 'processing');
-                
-                // Update buttons
-                document.getElementById('startVideoBtn').disabled = false;
-                document.getElementById('stopVideoBtn').disabled = true;
-                document.getElementById('pauseVideoBtn').disabled = true;
-            }
-
-            pauseVideoRecording() {
-                if (this.videoRecorder) {
-                    if (this.videoRecorder.state === 'recording') {
-                        this.videoRecorder.pause();
-                        this.pauseTimer('video');
-                        document.getElementById('pauseVideoBtn').innerHTML = '▶️ Resume';
-                        this.showStatus('videoStatus', '⏸️ Recording paused', 'processing');
-                    } else if (this.videoRecorder.state === 'paused') {
-                        this.videoRecorder.resume();
-                        this.resumeTimer('video');
-                        document.getElementById('pauseVideoBtn').innerHTML = '⏸️ Pause';
-                        this.showStatus('videoStatus', '🔴 Recording resumed...', 'recording');
-                    }
-                }
-            }
-
-            async startAudioRecording() {
-                try {
-                    this.showStatus('audioStatus', 'Requesting microphone access...', 'processing');
-                    
-                    this.audioStream = await navigator.mediaDevices.getUserMedia({ 
-                        audio: {
-                            sampleRate: 44100,
-                            channelCount: 2,
-                            echoCancellation: true,
-                            noiseSuppression: true
-                        }
-                    });
-
-                    // Setup recorder
-                    this.audioRecorder = new MediaRecorder(this.audioStream);
-                    this.audioChunks = [];
-
-                    this.audioRecorder.ondataavailable = (event) => {
-                        if (event.data.size > 0) {
-                            this.audioChunks.push(event.data);
-                        }
-                    };
-
-                    this.audioRecorder.onstop = () => {
-                        this.processAudioRecording();
-                    };
-
-                    this.audioRecorder.start();
-                    this.startTimer('audio');
-                    this.showStatus('audioStatus', '🎤 Recording in progress...', 'recording');
-                    
-                    // Show recording indicator
-                    const preview = document.getElementById('audioPreview');
-                    preview.innerHTML = `
-                        <div style="color: #e74c3c;">
-                            <div style="font-size: 3rem; margin-bottom: 1rem;" class="pulse">🎤</div>
-                            <p><strong>Recording Audio...</strong></p>
-                        </div>
-                    `;
-                    
-                    // Update buttons
-                    document.getElementById('startAudioBtn').disabled = true;
-                    document.getElementById('stopAudioBtn').disabled = false;
-                    document.getElementById('pauseAudioBtn').disabled = false;
-
-                } catch (error) {
-                    console.error('Error starting audio recording:', error);
-                    this.showStatus('audioStatus', 'Error: Could not access microphone', 'error');
-                }
-            }
-
-            stopAudioRecording() {
-                if (this.audioRecorder && this.audioRecorder.state !== 'inactive') {
-                    this.audioRecorder.stop();
-                }
-                
-                if (this.audioStream) {
-                    this.audioStream.getTracks().forEach(track => track.stop());
-                }
-                
-                this.stopTimer('audio');
-                this.showStatus('audioStatus', 'Processing audio...', 'processing');
-                
-                // Update buttons
-                document.getElementById('startAudioBtn').disabled = false;
-                document.getElementById('stopAudioBtn').disabled = true;
-                document.getElementById('pauseAudioBtn').disabled = true;
-            }
-
-            pauseAudioRecording() {
-                if (this.audioRecorder) {  
-                    if (this.audioRecorder.state === 'recording') {
-                        this.audioRecorder.pause();
-                        this.pauseTimer('audio');
-                        document.getElementById('pauseAudioBtn').innerHTML = '▶️ Resume';
-                        this.showStatus('audioStatus', '⏸️ Recording paused', 'processing');
-                    } else if (this.audioRecorder.state === 'paused') {
-                        this.audioRecorder.resume();
-                        this.resumeTimer('audio');
-                        document.getElementById('pauseAudioBtn').innerHTML = '⏸️ Pause';
-                        this.showStatus('audioStatus', '🎤 Recording resumed...', 'recording');
-                    }
-                }
-            }
-
-            processVideoRecording() {
-                const blob = new Blob(this.videoChunks, { type: 'video/mp4' });
-                const url = URL.createObjectURL(blob);
-                
-                const preview = document.getElementById('videoPreview');
-                preview.innerHTML = `
-                    <video controls style="max-width: 100%; border-radius: 10px;">
-                        <source src="${url}" type="video/mp4">
-                    </video>
-                    <div style="margin-top: 1rem;">
-                        <button class="btn btn-success" onclick="mediaCreator.downloadFile('${url}', 'recording_${Date.now()}.mp4')">
-                            💾 Download MP4
-                        </button>
-                    </div>
-                `;
-                
-                this.showStatus('videoStatus', '✅ Video ready for download!', 'success');
-            }
-
-            processAudioRecording() {
-                const blob = new Blob(this.audioChunks, { type: 'audio/mp3' });
-                const url = URL.createObjectURL(blob);
-                
-                const preview = document.getElementById('audioPreview');
-                preview.innerHTML = `
-                    <audio controls style="width: 100%;">
-                        <source src="${url}" type="audio/mp3">
-                    </audio>
-                    <div style="margin-top: 1rem;">
-                        <button class="btn btn-success" onclick="mediaCreator.downloadFile('${url}', 'recording_${Date.now()}.mp3')">
-                            💾 Download MP3
-                        </button>
-                    </div>
-                `;
-                
-                this.showStatus('audioStatus', '✅ Audio ready for download!', 'success');
-            }
-
-            handleVideoFile(event) {
-                const file = event.target.files[0];
-                if (file) {
-                    this.processVideoFile(file);
-                }
-            }
-
-            handleAudioFile(event) {
-                const file = event.target.files[0];
-                if (file) {
-                    this.processAudioFile(file);
-                }
-            }
-
-            processVideoFile(file) {
-                const url = URL.createObjectURL(file);
-                const preview = document.getElementById('videoPreview');
-                
-                preview.innerHTML = `
-                    <video controls style="max-width: 100%; border-radius: 10px;">
-                        <source src="${url}" type="${file.type}">
-                    </video>
-                    <div style="margin-top: 1rem;">
-                        <p><strong>File:</strong> ${file.name}</p>
-                        <p><strong>Size:</strong> ${(file.size / 1024 / 1024).toFixed(2)} MB</p>
-                        <button class="btn btn-success" onclick="mediaCreator.downloadFile('${url}', '${file.name}')">
-                            💾 Download
-                        </button>
-                    </div>
-                `;
-                
-                this.showStatus('videoStatus', '✅ Video file loaded successfully!', 'success');
-            }
-
-            processAudioFile(file) {
-                const url = URL.createObjectURL(file);
-                const preview = document.getElementById('audioPreview');
-                
-                preview.innerHTML = `
-                    <audio controls style="width: 100%;">
-                        <source src="${url}" type="${file.type}">
-                    </audio>
-                    <div style="margin-top: 1rem;">
-                        <p><strong>File:</strong> ${file.name}</p>
-                        <p><strong>Size:</strong> ${(file.size / 1024 / 1024).toFixed(2)} MB</p>
-                        <button class="btn btn-success" onclick="mediaCreator.downloadFile('${url}', '${file.name}')">
-                            💾 Download
-                        </button>
-                    </div>
-                `;
-                
-                this.showStatus('audioStatus', '✅ Audio file loaded successfully!', 'success');
-            }
-
-            downloadFile(url, filename) {
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = filename;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-            }
-
-            startTimer(type) {
-                const timer = type === 'video' ? this.videoTimer : this.audioTimer;
-                timer.start = Date.now() - timer.elapsed;
-                
-                timer.interval = setInterval(() => {
-                    timer.elapsed = Date.now() - timer.start;
-                    this.updateTimerDisplay(type, timer.elapsed);
-                }, 1000);
-            }
-
-            stopTimer(type) {
-                const timer = type === 'video' ? this.videoTimer : this.audioTimer;
-                if (timer.interval) {
-                    clearInterval(timer.interval);
-                    timer.interval = null;
-                }
-                timer.elapsed = 0;
-                this.updateTimerDisplay(type, 0);
-            }
-
-            pauseTimer(type) {
-                const timer = type === 'video' ? this.videoTimer : this.audioTimer;
-                if (timer.interval) {
-                    clearInterval(timer.interval);
-                    timer.interval = null;
-                }
-            }
-
-            resumeTimer(type) {
-                const timer = type === 'video' ? this.videoTimer : this.audioTimer;
-                timer.start = Date.now() - timer.elapsed;
-                
-                timer.interval = setInterval(() => {
-                    timer.elapsed = Date.now() - timer.start;
-                    this.updateTimerDisplay(type, timer.elapsed);
-                }, 1000);
-            }
-
-            updateTimerDisplay(type, elapsed) {
-                const minutes = Math.floor(elapsed / 60000);
-                const seconds = Math.floor((elapsed % 60000) / 1000);
-                const display = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-                
-                document.getElementById(`${type}Timer`).textContent = display;
-                
-                // Check max duration
-                const maxDuration = parseInt(document.getElementById('maxDuration').value) * 60000;
-                if (elapsed >= maxDuration) {
-                    if (type === 'video') {
-                        this.stopVideoRecording();
-                    } else {
-                        this.stopAudioRecording();
-                    }
-                }
-            }
-
-            showStatus(elementId, message, type) {
-                const statusEl = document.getElementById(elementId);
-                statusEl.textContent = message;
-                statusEl.className = `status ${type}`;
-                statusEl.style.display = 'block';
-                
-                if (type === 'success') {
-                    setTimeout(() => {
-                        statusEl.style.display = 'none';
-                    }, 5000);
-                }
-            }
-        }
-
-        // Initialize the media creator
-        const mediaCreator = new MediaCreator();
-    </script>
-</body>
-</html>
+  );
+}
